@@ -1,35 +1,23 @@
 name: Build Droidspaces Kernel
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     steps:
       - name: Checkout kernel source
         uses: actions/checkout@v4
-
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y bc bison build-essential flex \
             libncurses-dev libssl-dev zip python3
-
       - name: Download Google Clang
         run: |
           mkdir -p $HOME/toolchains/clang
           cd $HOME/toolchains/clang
           wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android14-release/clang-r475365b.tar.gz -O clang.tar.gz
           tar -xzf clang.tar.gz
-
-
-      - name: Download AOSP DTC
-        run: |
-          git clone --depth=1 https://android.googlesource.com/platform/external/dtc $HOME/aosp-dtc
-          make -C $HOME/aosp-dtc
-
       - name: Download GCC toolchains
         run: |
           git clone --depth=1 \
@@ -38,7 +26,6 @@ jobs:
           git clone --depth=1 \
             https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 \
             $HOME/toolchains/gcc32
-
       - name: Merge defconfig with Droidspaces config
         run: |
           export ARCH=arm64
@@ -46,19 +33,16 @@ jobs:
           make CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out kirisakura_defconfig
           ./scripts/kconfig/merge_config.sh -m -O out out/.config arch/arm64/configs/droidspaces.config
           make O=out ARCH=arm64 olddefconfig
-
       - name: Build kernel
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
           export PATH="$HOME/toolchains/clang/bin:$HOME/toolchains/gcc64/bin:$HOME/toolchains/gcc32/bin:$PATH"
-          export DTC_EXT=$HOME/aosp-dtc/dtc
           export CLANG_TRIPLE=aarch64-linux-gnu-
           export CROSS_COMPILE=aarch64-linux-android-
           export CROSS_COMPILE_ARM32=arm-linux-androideabi-
           export LD_LIBRARY_PATH=$HOME/toolchains/clang/lib64:$LD_LIBRARY_PATH
           make CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out -j$(nproc) Image.lz4-dtb
-
       - name: Upload kernel image
         uses: actions/upload-artifact@v4
         with:
