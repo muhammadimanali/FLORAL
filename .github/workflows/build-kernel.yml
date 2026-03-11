@@ -17,12 +17,16 @@ jobs:
           sudo apt-get install -y bc bison build-essential flex \
             libncurses-dev libssl-dev zip python3
 
-      - name: Download Google Clang r475365b
+      - name: Download Google Clang
         run: |
-          mkdir -p $HOME/toolchains/clang
-          cd $HOME/toolchains/clang
-          wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r475365b.tar.gz -O clang.tar.gz
-          tar -xzf clang.tar.gz
+          git clone --depth=1 \
+            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+            --filter=blob:none \
+            --sparse \
+            $HOME/toolchains/clang-repo
+          cd $HOME/toolchains/clang-repo
+          git sparse-checkout set clang-r475365b
+          mv clang-r475365b $HOME/toolchains/clang
 
       - name: Download GCC ARM64
         run: |
