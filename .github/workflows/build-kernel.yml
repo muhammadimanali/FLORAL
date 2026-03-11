@@ -20,7 +20,7 @@ jobs:
       - name: Download Google Clang
         run: |
           git clone --depth=1 \
-            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+            https://github.com/AOSPA/android_prebuilts_clang_host_linux-x86 \
             --filter=blob:none \
             --sparse \
             $HOME/toolchains/clang-repo
@@ -28,14 +28,15 @@ jobs:
           git sparse-checkout set clang-r475365b
           mv clang-r475365b $HOME/toolchains/clang
 
-      - name: Download GCC ARM64
+      - name: Download GCC toolchains
         run: |
-          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 $HOME/toolchains/gcc64
-
-      - name: Download GCC ARM32
-        run: |
-          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 $HOME/toolchains/gcc32
-
+          git clone --depth=1 \
+            https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 \
+            $HOME/toolchains/gcc64
+          git clone --depth=1 \
+            https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 \
+            $HOME/toolchains/gcc32
+            
       - name: Download AOSP DTC
         run: |
           git clone --depth=1 https://android.googlesource.com/platform/external/dtc $HOME/aosp-dtc
