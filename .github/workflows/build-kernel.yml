@@ -19,14 +19,11 @@ jobs:
 
       - name: Download Google Clang
         run: |
-          git clone --depth=1 \
-            https://github.com/AOSPA/android_prebuilts_clang_host_linux-x86 \
-            --filter=blob:none \
-            --sparse \
-            $HOME/toolchains/clang-repo
-          cd $HOME/toolchains/clang-repo
-          git sparse-checkout set clang-r475365b
-          mv clang-r475365b $HOME/toolchains/clang
+          mkdir -p $HOME/toolchains/clang
+          cd $HOME/toolchains/clang
+          wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android14-release/clang-r475365b.tar.gz -O clang.tar.gz
+          tar -xzf clang.tar.gz
+
 
       - name: Download GCC toolchains
         run: |
