@@ -25,6 +25,11 @@ jobs:
           tar -xzf clang.tar.gz
 
 
+      - name: Download AOSP DTC
+        run: |
+          git clone --depth=1 https://android.googlesource.com/platform/external/dtc $HOME/aosp-dtc
+          make -C $HOME/aosp-dtc
+
       - name: Download GCC toolchains
         run: |
           git clone --depth=1 \
