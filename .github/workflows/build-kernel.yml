@@ -33,11 +33,6 @@ jobs:
           git clone --depth=1 \
             https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 \
             $HOME/toolchains/gcc32
-            
-      - name: Download AOSP DTC
-        run: |
-          git clone --depth=1 https://android.googlesource.com/platform/external/dtc $HOME/aosp-dtc
-          make -C $HOME/aosp-dtc
 
       - name: Merge defconfig with Droidspaces config
         run: |
