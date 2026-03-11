@@ -1,0 +1,66 @@
+name: Build Droidspaces Kernel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+        with:
+          repository: freak07/FLORAL
+          branch: master_R_floral_caf_25_f2fs
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison build-essential flex \
+            libncurses-dev libssl-dev zip python3 \
+            gcc-arm-linux-gnueabi
+
+      - name: Download Proton Clang
+        run: |
+          mkdir -p $HOME/toolchains/proton-clang
+          git clone --depth=1 https://github.com/kdrag0n/proton-clang $HOME/toolchains/proton-clang
+
+      - name: Download AOSP DTC
+        run: |
+          git clone --depth=1 https://android.googlesource.com/platform/external/dtc $HOME/aosp-dtc
+          make -C $HOME/aosp-dtc
+
+      - name: Merge defconfig with Droidspaces config
+        run: |
+          export ARCH=arm64
+          export PATH="$HOME/toolchains/proton-clang/bin:$PATH"
+          make O=out ARCH=arm64 kirisakura_defconfig
+          ./scripts/kconfig/merge_config.sh -m -O out out/.config arch/arm64/configs/droidspaces.config
+          make O=out ARCH=arm64 olddefconfig
+
+      - name: Build kernel
+        run: |
+          export ARCH=arm64
+          export PATH="$HOME/toolchains/proton-clang/bin:/usr/bin:$PATH"
+          export DTC_EXT=$HOME/aosp-dtc/dtc
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+          make O=out \
+            ARCH=arm64 \
+            CC=clang \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+            LD=ld.lld \
+            AR=llvm-ar \
+            NM=llvm-nm \
+            OBJCOPY=llvm-objcopy \
+            OBJDUMP=llvm-objdump \
+            STRIP=llvm-strip \
+            -j$(nproc)
+
+      - name: Upload kernel image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-flame-droidspaces
+          path: out/arch/arm64/boot/Image.lz4-dtb
